@@ -1,0 +1,12 @@
+package:
+  name: "foreign"
+  dependencies:
+    - either
+    - functions
+    - identity
+    - integers
+    - lists
+    - maybe
+    - prelude
+    - strings
+    - transformers
