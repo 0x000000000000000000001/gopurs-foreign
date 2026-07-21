@@ -1,4 +1,4 @@
-# purescript-foreign
+# gopurs-foreign
 
 [![Latest release](http://img.shields.io/github/release/purescript/purescript-foreign.svg)](https://github.com/purescript/purescript-foreign/releases)
 [![Build status](https://github.com/purescript/purescript-foreign/workflows/CI/badge.svg?branch=master)](https://github.com/purescript/purescript-foreign/actions?query=workflow%3ACI+branch%3Amaster)
