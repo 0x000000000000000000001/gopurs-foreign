@@ -31,6 +31,7 @@ module Foreign
   , readUndefined
   , readNullOrUndefined
   , fail
+  , unboxForJSON
   ) where
 
 import Prelude

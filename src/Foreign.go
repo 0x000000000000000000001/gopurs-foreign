@@ -83,3 +83,54 @@ func IsArray(v gopurs_runtime.Value) gopurs_runtime.Value {
 	}
 	return gopurs_runtime.Bool(false)
 }
+
+func UnboxForJSON(v interface{}) interface{} {
+	return deepUnbox(v)
+}
+
+func deepUnbox(v interface{}) interface{} {
+	if val, ok := v.(gopurs_runtime.Value); ok {
+		switch val.Type {
+		case gopurs_runtime.TypeInt:
+			return val.IntVal
+		case gopurs_runtime.TypeFloat:
+			if val.UnsafePtr != nil {
+				return *(*float64)(val.UnsafePtr)
+			}
+			return 0.0
+		case gopurs_runtime.TypeString:
+			if val.UnsafePtr != nil {
+				return *(*string)(val.UnsafePtr)
+			}
+			return ""
+		case gopurs_runtime.TypeBool:
+			return val.IntVal != 0
+		case gopurs_runtime.TypeArray:
+			if val.UnsafePtr != nil {
+				arr := *(*[]gopurs_runtime.Value)(val.UnsafePtr)
+				res := make([]interface{}, len(arr))
+				for i, x := range arr {
+					res[i] = deepUnbox(x)
+				}
+				return res
+			}
+			return []interface{}{}
+		case gopurs_runtime.TypeRecord, gopurs_runtime.TypeRecord0, gopurs_runtime.TypeRecord1, gopurs_runtime.TypeRecord2, gopurs_runtime.TypeRecord3, gopurs_runtime.TypeRecord4, gopurs_runtime.TypeRecord5:
+			rec := gopurs_runtime.RecordToMap(val)
+			res := make(map[string]interface{})
+			for k, x := range rec {
+				res[k] = deepUnbox(x)
+			}
+			return res
+		case gopurs_runtime.TypeAny:
+			if val.UnsafePtr == nil {
+				return nil
+			}
+			if *(*any)(val.UnsafePtr) == nil {
+				return nil
+			}
+			return deepUnbox(*(*any)(val.UnsafePtr))
+		}
+	}
+	return v
+}
