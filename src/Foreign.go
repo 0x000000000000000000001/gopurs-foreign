@@ -130,7 +130,16 @@ func deepUnbox(v interface{}) interface{} {
 				return nil
 			}
 			return deepUnbox(*(*any)(val.UnsafePtr))
+		default:
+			return nil
 		}
+	}
+	if valSlice, ok := v.([]gopurs_runtime.Value); ok {
+		res := make([]interface{}, len(valSlice))
+		for i, x := range valSlice {
+			res[i] = deepUnbox(x)
+		}
+		return res
 	}
 	return v
 }
