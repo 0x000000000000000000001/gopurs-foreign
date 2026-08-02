@@ -185,3 +185,5 @@ readNullOrUndefined value
 -- | Throws a failure error in `ExceptT (NonEmptyList ForeignError) m`.
 fail :: forall m a. Monad m => ForeignError -> ExceptT (NonEmptyList ForeignError) m a
 fail = throwError <<< NEL.singleton
+
+foreign import unboxForJSON :: Foreign -> Foreign
