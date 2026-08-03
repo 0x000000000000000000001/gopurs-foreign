@@ -141,5 +141,19 @@ func deepUnbox(v interface{}) interface{} {
 		}
 		return res
 	}
+	if mapRaw, ok := v.(map[string]interface{}); ok {
+		res := make(map[string]interface{})
+		for k, x := range mapRaw {
+			res[k] = deepUnbox(x)
+		}
+		return res
+	}
+	if arrRaw, ok := v.([]interface{}); ok {
+		res := make([]interface{}, len(arrRaw))
+		for i, x := range arrRaw {
+			res[i] = deepUnbox(x)
+		}
+		return res
+	}
 	return v
 }
