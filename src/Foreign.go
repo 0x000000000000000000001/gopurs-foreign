@@ -17,6 +17,24 @@ func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 		return gopurs_runtime.Str("function")
 	case 0: return gopurs_runtime.Str("undefined")
 	default:
+		if v.Type == gopurs_runtime.TypeAny && v.UnsafePtr != nil {
+			val := *(*any)(v.UnsafePtr)
+			if val != nil {
+				rt := reflect.TypeOf(val)
+				if rt != nil {
+					switch rt.Kind() {
+					case reflect.String:
+						return gopurs_runtime.Str("string")
+					case reflect.Bool:
+						return gopurs_runtime.Str("boolean")
+					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+					     reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+					     reflect.Float32, reflect.Float64:
+						return gopurs_runtime.Str("number")
+					}
+				}
+			}
+		}
 		return gopurs_runtime.Str("object")
 	}
 }
@@ -43,8 +61,22 @@ func TagOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 				return gopurs_runtime.Str("Null")
 			}
 			rt := reflect.TypeOf(val)
-			if rt != nil && rt.Kind() == reflect.Slice {
-				return gopurs_runtime.Str("Array")
+			if rt != nil {
+				if rt.Kind() == reflect.Slice {
+					return gopurs_runtime.Str("Array")
+				}
+				if rt.Kind() == reflect.String {
+					return gopurs_runtime.Str("String")
+				}
+				if rt.Kind() == reflect.Bool {
+					return gopurs_runtime.Str("Boolean")
+				}
+				switch rt.Kind() {
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+					 reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+					 reflect.Float32, reflect.Float64:
+					return gopurs_runtime.Str("Number")
+				}
 			}
 		}
 		return gopurs_runtime.Str("Object")

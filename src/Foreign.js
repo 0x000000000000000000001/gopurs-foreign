@@ -17,3 +17,7 @@ export function isUndefined(value) {
 export const isArray = Array.isArray || function (value) {
   return Object.prototype.toString.call(value) === "[object Array]";
 };
+
+export function unboxForJSON(value) {
+  return value;
+}
