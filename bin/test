@@ -3,7 +3,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 # Remove cache for safety
-rm -rf output
+rm -rf output .spago .cache ../gopurs-*/output ../gopurs-*/.spago ../gopurs-*/.cache
 
 echo "=== Building project with spago ==="
 spago build || { echo "Spago build failed"; exit 1; }
