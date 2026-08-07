@@ -10,3 +10,29 @@ package:
     - prelude
     - strings
     - transformers
+
+  test:
+    main: Test.Main
+    dependencies:
+      - assert
+      - console
+      - effect
+
+workspace:
+  packageSet:
+    registry: 77.7.0
+  extraPackages:
+    assert:
+      path: "../gopurs-assert"
+    console:
+      path: "../gopurs-console"
+    effect:
+      path: "../gopurs-effect"
+    prelude:
+      path: "../gopurs-prelude"
+    functions:
+      path: "../gopurs-functions"
+    integers:
+      path: "../gopurs-integers"
+    strings:
+      path: "../gopurs-strings"
