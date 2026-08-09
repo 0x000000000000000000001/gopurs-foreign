@@ -5,6 +5,8 @@ import (
 	"reflect"
 )
 
+var UndefinedForJSON = struct{}{}
+
 func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 	switch v.Type {
 	case gopurs_runtime.TypeBool: return gopurs_runtime.Str("boolean")
@@ -134,10 +136,7 @@ func deepUnbox(v interface{}) interface{} {
 		case gopurs_runtime.TypeInt:
 			return val.IntVal
 		case gopurs_runtime.TypeFloat:
-			if val.UnsafePtr != nil {
-				return *(*float64)(val.UnsafePtr)
-			}
-			return 0.0
+			return val.FloatVal()
 		case gopurs_runtime.TypeString:
 			if val.UnsafePtr != nil {
 				return *(*string)(val.UnsafePtr)
@@ -170,6 +169,8 @@ func deepUnbox(v interface{}) interface{} {
 				return nil
 			}
 			return deepUnbox(*(*any)(val.UnsafePtr))
+		case 0:
+			return UndefinedForJSON
 		default:
 			return nil
 		}
