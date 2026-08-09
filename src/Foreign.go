@@ -22,6 +22,10 @@ func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 			if val != nil {
 				rt := reflect.TypeOf(val)
 				if rt != nil {
+				if rt.Name() == "Date" {
+					return gopurs_runtime.Str("Date")
+				}
+
 					switch rt.Kind() {
 					case reflect.String:
 						return gopurs_runtime.Str("string")
@@ -71,6 +75,10 @@ func TagOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 				if rt.Kind() == reflect.Bool {
 					return gopurs_runtime.Str("Boolean")
 				}
+				if rt.Name() == "Date" {
+					return gopurs_runtime.Str("Date")
+				}
+
 				switch rt.Kind() {
 				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 					 reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
