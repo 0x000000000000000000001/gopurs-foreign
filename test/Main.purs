@@ -3,8 +3,10 @@ module Test.Main where
 import Prelude
 import Effect (Effect)
 import Effect.Console (log)
-import Foreign (typeOf, tagOf, isNull, isUndefined, isArray, unsafeToForeign)
+import Foreign (typeOf, tagOf, isNull, isUndefined, isArray, unsafeToForeign, readString, readBoolean, readNumber, readInt, readArray)
 import Test.Assert (assert)
+import Control.Monad.Except (runExcept)
+import Data.Either (isRight, isLeft)
 
 main :: Effect Unit
 main = do
@@ -37,5 +39,28 @@ main = do
   assert $ isNull (unsafeToForeign { a: 1 }) == false
   assert $ isUndefined (unsafeToForeign "hello") == false
   assert $ isUndefined (unsafeToForeign { a: 1 }) == false
+
+  log "Testing readString"
+  assert $ isRight $ runExcept $ readString (unsafeToForeign "hello")
+  assert $ isLeft $ runExcept $ readString (unsafeToForeign 42)
+
+  log "Testing readBoolean"
+  assert $ isRight $ runExcept $ readBoolean (unsafeToForeign true)
+  assert $ isLeft $ runExcept $ readBoolean (unsafeToForeign 42)
+
+  log "Testing readNumber"
+  assert $ isRight $ runExcept $ readNumber (unsafeToForeign 42.5)
+  assert $ isRight $ runExcept $ readNumber (unsafeToForeign 42)
+  assert $ isLeft $ runExcept $ readNumber (unsafeToForeign "42")
+
+  log "Testing readInt"
+  assert $ isRight $ runExcept $ readInt (unsafeToForeign 42)
+  assert $ isRight $ runExcept $ readInt (unsafeToForeign 42.0)
+  assert $ isLeft $ runExcept $ readInt (unsafeToForeign 42.5)
+  assert $ isLeft $ runExcept $ readInt (unsafeToForeign "42")
+
+  log "Testing readArray"
+  assert $ isRight $ runExcept $ readArray (unsafeToForeign [1, 2, 3])
+  assert $ isLeft $ runExcept $ readArray (unsafeToForeign 42)
 
   log "All tests passed"
