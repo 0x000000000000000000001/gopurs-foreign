@@ -60,7 +60,7 @@ func UnsafeReadPropImpl(f gopurs_runtime.Value, s gopurs_runtime.Value, key gopu
 	return gopurs_runtime.Apply(s, propVal)
 }
 
-func UnsafeHasOwnProperty(prop gopurs_runtime.Value, value gopurs_runtime.Value) gopurs_runtime.Value {
+func unsafeHasOwnPropertyImpl(prop gopurs_runtime.Value, value gopurs_runtime.Value) gopurs_runtime.Value {
 	var kStr string
 	isStr := false
 	if prop.Type == gopurs_runtime.TypeString {
@@ -88,6 +88,10 @@ func UnsafeHasOwnProperty(prop gopurs_runtime.Value, value gopurs_runtime.Value)
 	return gopurs_runtime.Bool(false)
 }
 
+func UnsafeHasOwnProperty(prop gopurs_runtime.Value, value gopurs_runtime.Value) gopurs_runtime.Value {
+	return unsafeHasOwnPropertyImpl(prop, value)
+}
+
 func UnsafeHasProperty(prop gopurs_runtime.Value, value gopurs_runtime.Value) gopurs_runtime.Value {
-	return UnsafeHasOwnProperty(prop, value)
+	return unsafeHasOwnPropertyImpl(prop, value)
 }

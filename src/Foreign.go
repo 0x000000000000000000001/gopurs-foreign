@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-var UndefinedForJSON = struct{}{}
+var undefinedForJSON = struct{}{}
 
 func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 	switch v.Type {
@@ -127,10 +127,10 @@ func IsArray(v gopurs_runtime.Value) gopurs_runtime.Value {
 }
 
 func UnboxForJSON(v interface{}) interface{} {
-	return deepUnbox(v)
+	return foreignDeepUnbox(v)
 }
 
-func deepUnbox(v interface{}) interface{} {
+func foreignDeepUnbox(v interface{}) interface{} {
 	if val, ok := v.(gopurs_runtime.Value); ok {
 		switch val.Type {
 		case gopurs_runtime.TypeInt:
@@ -149,7 +149,7 @@ func deepUnbox(v interface{}) interface{} {
 				arr := *(*[]gopurs_runtime.Value)(val.UnsafePtr)
 				res := make([]interface{}, len(arr))
 				for i, x := range arr {
-					res[i] = deepUnbox(x)
+					res[i] = foreignDeepUnbox(x)
 				}
 				return res
 			}
@@ -158,8 +158,8 @@ func deepUnbox(v interface{}) interface{} {
 			rec := gopurs_runtime.RecordToMap(val)
 			res := make(map[string]interface{})
 			for k, x := range rec {
-				unboxed := deepUnbox(x)
-				if unboxed != UndefinedForJSON {
+				unboxed := foreignDeepUnbox(x)
+				if unboxed != undefinedForJSON {
 					res[k] = unboxed
 				}
 			}
@@ -171,9 +171,9 @@ func deepUnbox(v interface{}) interface{} {
 			if *(*any)(val.UnsafePtr) == nil {
 				return nil
 			}
-			return deepUnbox(*(*any)(val.UnsafePtr))
+			return foreignDeepUnbox(*(*any)(val.UnsafePtr))
 		case 0:
-			return UndefinedForJSON
+			return undefinedForJSON
 		default:
 			return nil
 		}
@@ -181,15 +181,15 @@ func deepUnbox(v interface{}) interface{} {
 	if valSlice, ok := v.([]gopurs_runtime.Value); ok {
 		res := make([]interface{}, len(valSlice))
 		for i, x := range valSlice {
-			res[i] = deepUnbox(x)
+			res[i] = foreignDeepUnbox(x)
 		}
 		return res
 	}
 	if mapGopurs, ok := v.(map[string]gopurs_runtime.Value); ok {
 		res := make(map[string]interface{})
 		for k, x := range mapGopurs {
-			unboxed := deepUnbox(x)
-			if unboxed != UndefinedForJSON {
+			unboxed := foreignDeepUnbox(x)
+			if unboxed != undefinedForJSON {
 				res[k] = unboxed
 			}
 		}
@@ -198,8 +198,8 @@ func deepUnbox(v interface{}) interface{} {
 	if mapRaw, ok := v.(map[string]interface{}); ok {
 		res := make(map[string]interface{})
 		for k, x := range mapRaw {
-			unboxed := deepUnbox(x)
-			if unboxed != UndefinedForJSON {
+			unboxed := foreignDeepUnbox(x)
+			if unboxed != undefinedForJSON {
 				res[k] = unboxed
 			}
 		}
@@ -208,7 +208,7 @@ func deepUnbox(v interface{}) interface{} {
 	if arrRaw, ok := v.([]interface{}); ok {
 		res := make([]interface{}, len(arrRaw))
 		for i, x := range arrRaw {
-			res[i] = deepUnbox(x)
+			res[i] = foreignDeepUnbox(x)
 		}
 		return res
 	}
