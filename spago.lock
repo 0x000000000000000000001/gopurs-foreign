@@ -693,6 +693,9 @@
       },
       "strings": {
         "path": "../gopurs-strings"
+      },
+      "unsafe-coerce": {
+        "path": "../gopurs-unsafe-coerce"
       }
     }
   },
@@ -1160,9 +1163,8 @@
       ]
     },
     "unsafe-coerce": {
-      "type": "registry",
-      "version": "6.0.0",
-      "integrity": "sha256-0L1QsaY20OILjfU5TV72d3U/tSjhmL9hJ32WMp857Lk=",
+      "type": "local",
+      "path": "../gopurs-unsafe-coerce",
       "dependencies": []
     }
   }

@@ -6,7 +6,7 @@ import Effect.Console (log)
 import Foreign (typeOf, tagOf, isNull, isUndefined, isArray, unsafeToForeign, readString, readBoolean, readNumber, readInt, readArray)
 import Test.Assert (assert)
 import Control.Monad.Except (runExcept)
-import Data.Either (isRight, isLeft)
+import Data.Either (Either(..), isRight, isLeft)
 
 main :: Effect Unit
 main = do
@@ -51,11 +51,14 @@ main = do
   log "Testing readNumber"
   assert $ isRight $ runExcept $ readNumber (unsafeToForeign 42.5)
   assert $ isRight $ runExcept $ readNumber (unsafeToForeign 42)
+  assert $ runExcept (readNumber (unsafeToForeign 42)) == Right 42.0
+  assert $ runExcept (readNumber (unsafeToForeign (-42))) == Right (-42.0)
   assert $ isLeft $ runExcept $ readNumber (unsafeToForeign "42")
 
   log "Testing readInt"
   assert $ isRight $ runExcept $ readInt (unsafeToForeign 42)
   assert $ isRight $ runExcept $ readInt (unsafeToForeign 42.0)
+  assert $ runExcept (readInt (unsafeToForeign 42)) == Right 42
   assert $ isLeft $ runExcept $ readInt (unsafeToForeign 42.5)
   assert $ isLeft $ runExcept $ readInt (unsafeToForeign "42")
 

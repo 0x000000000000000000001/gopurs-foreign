@@ -36,3 +36,5 @@ workspace:
       path: "../gopurs-integers"
     strings:
       path: "../gopurs-strings"
+    unsafe-coerce:
+      path: "../gopurs-unsafe-coerce"

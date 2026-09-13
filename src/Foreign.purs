@@ -152,7 +152,10 @@ readBoolean = unsafeReadTagged "Boolean"
 
 -- | Attempt to coerce a foreign value to a `Number`.
 readNumber :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m Number
-readNumber = unsafeReadTagged "Number"
+readNumber value = unsafeReadNumber <$> unsafeReadTagged "Number" value
+
+-- Convert accepted integers to the native Number representation.
+foreign import unsafeReadNumber :: Foreign -> Number
 
 -- | Attempt to coerce a foreign value to an `Int`.
 readInt :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m Int

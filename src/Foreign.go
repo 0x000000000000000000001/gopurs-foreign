@@ -7,6 +7,11 @@ import (
 
 var undefinedForJSON = struct{}{}
 
+// The FFI bridge converts accepted integer values to float64.
+func UnsafeReadNumber(value float64) float64 {
+	return value
+}
+
 func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 	switch v.Type {
 	case gopurs_runtime.TypeBool: return gopurs_runtime.Str("boolean")

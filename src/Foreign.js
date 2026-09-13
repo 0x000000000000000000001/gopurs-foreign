@@ -6,6 +6,10 @@ export function tagOf(value) {
   return Object.prototype.toString.call(value).slice(8, -1);
 }
 
+export function unsafeReadNumber(value) {
+  return value;
+}
+
 export function isNull(value) {
   return value === null;
 }
