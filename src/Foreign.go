@@ -144,7 +144,7 @@ func foreignDeepUnbox(v interface{}) interface{} {
 			return val.FloatVal()
 		case gopurs_runtime.TypeString:
 			if val.UnsafePtr != nil {
-				return *(*string)(val.UnsafePtr)
+				return gopurs_runtime.StrValue(val)
 			}
 			return ""
 		case gopurs_runtime.TypeBool:

@@ -16,7 +16,7 @@ func UnsafeReadPropImpl(f gopurs_runtime.Value, s gopurs_runtime.Value, key gopu
 	var kStr string
 	isStr := false
 	if key.Type == gopurs_runtime.TypeString {
-		kStr = *(*string)(key.UnsafePtr)
+		kStr = gopurs_runtime.StrValue(key)
 		isStr = true
 	} else if key.Type == gopurs_runtime.TypeInt {
 		kStr = strconv.FormatInt(key.IntVal, 10)
@@ -64,7 +64,7 @@ func unsafeHasOwnPropertyImpl(prop gopurs_runtime.Value, value gopurs_runtime.Va
 	var kStr string
 	isStr := false
 	if prop.Type == gopurs_runtime.TypeString {
-		kStr = *(*string)(prop.UnsafePtr)
+		kStr = gopurs_runtime.StrValue(prop)
 		isStr = true
 	} else if prop.Type == gopurs_runtime.TypeInt {
 		kStr = strconv.FormatInt(prop.IntVal, 10)
