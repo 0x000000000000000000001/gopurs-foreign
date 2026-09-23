@@ -20,7 +20,7 @@ func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 	case gopurs_runtime.TypeFunc, gopurs_runtime.TypeFunc2, gopurs_runtime.TypeFunc3, 
 	     gopurs_runtime.TypeFunc4, gopurs_runtime.TypeFunc5, gopurs_runtime.TypeFunc6,
 	     gopurs_runtime.TypeFunc7, gopurs_runtime.TypeFunc8, gopurs_runtime.TypeFunc9,
-	     gopurs_runtime.TypeFunc10: 
+	     gopurs_runtime.TypeFunc10, gopurs_runtime.TypeFunc11, gopurs_runtime.TypeFunctionData:
 		return gopurs_runtime.Str("function")
 	case 0: return gopurs_runtime.Str("undefined")
 	default:
@@ -59,7 +59,7 @@ func TagOf(v gopurs_runtime.Value) gopurs_runtime.Value {
 	case gopurs_runtime.TypeFunc, gopurs_runtime.TypeFunc2, gopurs_runtime.TypeFunc3, 
 	     gopurs_runtime.TypeFunc4, gopurs_runtime.TypeFunc5, gopurs_runtime.TypeFunc6,
 	     gopurs_runtime.TypeFunc7, gopurs_runtime.TypeFunc8, gopurs_runtime.TypeFunc9,
-	     gopurs_runtime.TypeFunc10: 
+	     gopurs_runtime.TypeFunc10, gopurs_runtime.TypeFunc11, gopurs_runtime.TypeFunctionData:
 		return gopurs_runtime.Str("Function")
 	case 0: return gopurs_runtime.Str("Undefined")
 	default:
