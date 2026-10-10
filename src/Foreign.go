@@ -159,7 +159,7 @@ func foreignDeepUnbox(v interface{}) interface{} {
 				return res
 			}
 			return []interface{}{}
-		case gopurs_runtime.TypeRecord, gopurs_runtime.TypeRecord0, gopurs_runtime.TypeRecord1, gopurs_runtime.TypeRecord2, gopurs_runtime.TypeRecord3, gopurs_runtime.TypeRecord4, gopurs_runtime.TypeRecord5:
+		case gopurs_runtime.TypeRecord, gopurs_runtime.TypeRecord0, gopurs_runtime.TypeRecord1, gopurs_runtime.TypeRecord2, gopurs_runtime.TypeRecord3, gopurs_runtime.TypeRecord4, gopurs_runtime.TypeRecord5, gopurs_runtime.TypeRecordData:
 			rec := gopurs_runtime.RecordToMap(val)
 			res := make(map[string]interface{})
 			for k, x := range rec {
