@@ -136,6 +136,9 @@ func UnboxForJSON(v interface{}) interface{} {
 }
 
 func foreignDeepUnbox(v interface{}) interface{} {
+	if gopurs_runtime.IsForeignUndefined(v) {
+		return undefinedForJSON
+	}
 	if val, ok := v.(gopurs_runtime.Value); ok {
 		switch val.Type {
 		case gopurs_runtime.TypeInt:
@@ -154,7 +157,7 @@ func foreignDeepUnbox(v interface{}) interface{} {
 				arr := *(*[]gopurs_runtime.Value)(val.UnsafePtr)
 				res := make([]interface{}, len(arr))
 				for i, x := range arr {
-					res[i] = foreignDeepUnbox(x)
+					res[i] = foreignJSONElement(x)
 				}
 				return res
 			}
@@ -186,7 +189,7 @@ func foreignDeepUnbox(v interface{}) interface{} {
 	if valSlice, ok := v.([]gopurs_runtime.Value); ok {
 		res := make([]interface{}, len(valSlice))
 		for i, x := range valSlice {
-			res[i] = foreignDeepUnbox(x)
+			res[i] = foreignJSONElement(x)
 		}
 		return res
 	}
@@ -213,9 +216,19 @@ func foreignDeepUnbox(v interface{}) interface{} {
 	if arrRaw, ok := v.([]interface{}); ok {
 		res := make([]interface{}, len(arrRaw))
 		for i, x := range arrRaw {
-			res[i] = foreignDeepUnbox(x)
+			res[i] = foreignJSONElement(x)
 		}
 		return res
 	}
 	return v
+}
+
+// JSON.stringify retains array positions by encoding undefined as null.
+// Object fields are omitted by foreignDeepUnbox instead.
+func foreignJSONElement(v interface{}) interface{} {
+	value := foreignDeepUnbox(v)
+	if value == undefinedForJSON {
+		return nil
+	}
+	return value
 }

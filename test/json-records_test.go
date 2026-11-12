@@ -2,6 +2,7 @@ package Foreign
 
 import (
 	"encoding/json"
+	"os"
 	"reflect"
 	"strconv"
 	"testing"
@@ -58,5 +59,53 @@ func TestJSONNestedNullAndUndefined(t *testing.T) {
 	}
 	if !IsNull(rt.Any(nil)).BoolVal() || IsUndefined(rt.Any(nil)).BoolVal() || !IsUndefined(rt.Value{}).BoolVal() {
 		t.Fatal("null and undefined must remain distinct")
+	}
+}
+
+func TestJSONAfterNativeForeignTransport(t *testing.T) {
+	reference, err := os.ReadFile("json-boundary-reference.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var expected map[string]any
+	if err := json.Unmarshal(reference, &expected); err != nil {
+		t.Fatal(err)
+	}
+	leaf := rt.RecordDict3("absent", "null", "zero", rt.Value{}, rt.Any(nil), rt.Int(0))
+	object := rt.RecordDict3("absent", "nested", "list", rt.Value{}, leaf, rt.Array([]rt.Value{{}, rt.Any(nil), leaf}))
+	mixed := rt.Any([]any{rt.Value{}, nil, map[string]any{"absent": rt.Value{}, "null": nil}})
+	for name, boxed := range map[string]rt.Value{"object": object, "mixed": mixed} {
+		t.Run(name, func(t *testing.T) {
+			native := rt.ForeignValue(boxed)
+			// The callback adapter wraps its native argument with Any, exactly
+			// as the generated Foreign -> String callback does for PostgreSQL.
+			encoded, err := json.Marshal(UnboxForJSON(rt.Any(native)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var actual any
+			if err := json.Unmarshal(encoded, &actual); err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(actual, expected[name]) {
+				t.Fatalf("JSON differs from JavaScript: got %s, want %#v", encoded, expected[name])
+			}
+		})
+	}
+	native := rt.ForeignValue(object).(map[string]any)
+	undefined, present := native["absent"]
+	if !present || undefined == nil || !rt.IsForeignUndefined(undefined) {
+		t.Fatal("transport discarded an undefined property or changed it to null")
+	}
+	if _, present := native["missing"]; present {
+		t.Fatal("transport added an absent property")
+	}
+	for _, value := range []rt.Value{rt.Any(undefined), rt.Box(undefined)} {
+		if !IsUndefined(value).BoolVal() || IsNull(value).BoolVal() || TypeOf(value).StrVal() != "undefined" || TagOf(value).StrVal() != "Undefined" {
+			t.Fatal("native callback/result roundtrip changed undefined semantics")
+		}
+	}
+	if !IsNull(rt.Any(native["nested"].(map[string]any)["null"])).BoolVal() {
+		t.Fatal("null did not survive the native boundary")
 	}
 }
