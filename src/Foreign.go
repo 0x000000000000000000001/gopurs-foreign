@@ -7,9 +7,42 @@ import (
 
 var undefinedForJSON = struct{}{}
 
-// The FFI bridge converts accepted integer values to float64.
-func UnsafeReadNumber(value float64) float64 {
-	return value
+// The safe readers check the native kind before these representation changes.
+// Reflection preserves support for named primitive and slice types accepted
+// by TagOf and IsArray. Array elements remain native Foreign payloads.
+func UnsafeReadString(value any) string {
+	return reflect.ValueOf(value).String()
+}
+
+func UnsafeReadBoolean(value any) bool {
+	return reflect.ValueOf(value).Bool()
+}
+
+func UnsafeReadArray(value gopurs_runtime.Value) []gopurs_runtime.Value {
+	if value.Type == gopurs_runtime.TypeArray {
+		return gopurs_runtime.Unbox[[]gopurs_runtime.Value](value)
+	}
+	// Reading an array inspects only its outer shape. Do not traverse or
+	// convert its children: they can include shared/cyclic native containers,
+	// undefined, or values retained by the explicit legacy runtime ABI.
+	array := reflect.ValueOf(value.PtrVal())
+	result := make([]gopurs_runtime.Value, array.Len())
+	for i := range result {
+		result[i] = gopurs_runtime.Any(array.Index(i).Interface())
+	}
+	return result
+}
+
+func UnsafeReadNumber(value any) float64 {
+	number := reflect.ValueOf(value)
+	switch number.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return float64(number.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return float64(number.Uint())
+	default:
+		return number.Float()
+	}
 }
 
 func TypeOf(v gopurs_runtime.Value) gopurs_runtime.Value {

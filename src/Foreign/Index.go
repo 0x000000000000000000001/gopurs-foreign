@@ -2,8 +2,15 @@ package Foreign_Index
 
 import (
 	"gopurs/output/gopurs_runtime"
+	"reflect"
 	"strconv"
 )
+
+func nativeArrayIndex(key string, length int) (int, bool) {
+	index, err := strconv.ParseInt(key, 10, 64)
+	valid := err == nil && strconv.FormatInt(index, 10) == key && index >= 0 && index < int64(length)
+	return int(index), valid
+}
 
 func UnsafeReadPropImpl(f gopurs_runtime.Value, s gopurs_runtime.Value, key gopurs_runtime.Value, value gopurs_runtime.Value) gopurs_runtime.Value {
 	if value.Type == gopurs_runtime.TypeAny && value.UnsafePtr == nil {
@@ -42,12 +49,21 @@ func UnsafeReadPropImpl(f gopurs_runtime.Value, s gopurs_runtime.Value, key gopu
 		native := *(*any)(value.UnsafePtr)
 		if m, ok := native.(map[string]interface{}); ok {
 			if v, ok := m[kStr]; ok {
-				propVal = gopurs_runtime.Box(v)
+				propVal = gopurs_runtime.Any(v)
 				found = true
 			}
 		} else if m, ok := native.(map[string]gopurs_runtime.Value); ok {
 			if v, ok := m[kStr]; ok {
 				propVal = v
+				found = true
+			}
+		} else if array := reflect.ValueOf(native); array.Kind() == reflect.Slice {
+			// String keys must spell the index exactly: "01", "+1" and
+			// non-numeric properties are not array indices in JavaScript.
+			if index, valid := nativeArrayIndex(kStr, array.Len()); valid {
+				// Preserve native child identity and explicit legacy Values.
+				// Reading one property must not convert its descendants.
+				propVal = gopurs_runtime.Any(array.Index(index).Interface())
 				found = true
 			}
 		}
@@ -83,6 +99,9 @@ func unsafeHasOwnPropertyImpl(prop gopurs_runtime.Value, value gopurs_runtime.Va
 		} else if m, ok := native.(map[string]gopurs_runtime.Value); ok {
 			_, ok := m[kStr]
 			return gopurs_runtime.Bool(ok)
+		} else if array := reflect.ValueOf(native); array.Kind() == reflect.Slice {
+			_, found := nativeArrayIndex(kStr, array.Len())
+			return gopurs_runtime.Bool(found)
 		}
 	}
 	return gopurs_runtime.Bool(false)

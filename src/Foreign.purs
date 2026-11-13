@@ -137,7 +137,9 @@ foreign import isArray :: Foreign -> Boolean
 
 -- | Attempt to coerce a foreign value to a `String`.
 readString :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m String
-readString = unsafeReadTagged "String"
+readString value = unsafeReadString <$> unsafeReadTagged "String" value
+
+foreign import unsafeReadString :: Foreign -> String
 
 -- | Attempt to coerce a foreign value to a `Char`.
 readChar :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m Char
@@ -148,7 +150,9 @@ readChar value = mapExceptT (map $ either (const error) fromString) (readString 
 
 -- | Attempt to coerce a foreign value to a `Boolean`.
 readBoolean :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m Boolean
-readBoolean = unsafeReadTagged "Boolean"
+readBoolean value = unsafeReadBoolean <$> unsafeReadTagged "Boolean" value
+
+foreign import unsafeReadBoolean :: Foreign -> Boolean
 
 -- | Attempt to coerce a foreign value to a `Number`.
 readNumber :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m Number
@@ -167,8 +171,10 @@ readInt value = mapExceptT (map $ either (const error) fromNumber) (readNumber v
 -- | Attempt to coerce a foreign value to an array.
 readArray :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m (Array Foreign)
 readArray value
-  | isArray value = pure $ unsafeFromForeign value
+  | isArray value = pure $ unsafeReadArray value
   | otherwise = fail $ TypeMismatch "array" (tagOf value)
+
+foreign import unsafeReadArray :: Foreign -> Array Foreign
 
 readNull :: forall m. Monad m => Foreign -> ExceptT (NonEmptyList ForeignError) m (Maybe Foreign)
 readNull value

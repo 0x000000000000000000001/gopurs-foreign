@@ -9,17 +9,20 @@ const work = mkdtempSync(join(tmpdir(), "gopurs-foreign-json-records-"));
 console.log(`Workspace: ${work}`);
 mkdirSync(join(work, "output/gopurs_runtime"), { recursive: true });
 mkdirSync(join(work, "ffi"));
+mkdirSync(join(work, "index"));
 writeFileSync(join(work, "go.mod"), "module gopurs\n\ngo 1.27.0\n");
 writeFileSync(join(work, "output/gopurs_runtime/runtime.go"), readFileSync(resolve(root, "../gopurs/runtime/runtime.go")));
 writeFileSync(join(work, "ffi/ffi.go"), readFileSync(join(root, "src/Foreign.go")));
 writeFileSync(join(work, "ffi/ffi_test.go"), readFileSync(join(root, "test/json-records_test.go")));
+writeFileSync(join(work, "index/index.go"), readFileSync(join(root, "src/Foreign/Index.go")));
+writeFileSync(join(work, "index/index_test.go"), readFileSync(join(root, "test/indexed-readers_test.go")));
 // The serializer, rather than Foreign transport, owns JSON's omission/null rules.
 const leaf = { absent: undefined, null: null, zero: 0 };
 writeFileSync(join(work, "ffi/json-boundary-reference.json"), JSON.stringify({
   object: { absent: undefined, nested: leaf, list: [undefined, null, leaf] },
   mixed: [undefined, null, { absent: undefined, null: null }],
 }));
-const result = spawnSync("go", ["test", "-race", "-count=1", "-v", "./ffi"], {
+const result = spawnSync("go", ["test", "-race", "-count=1", "-v", "./ffi", "./index"], {
   cwd: work, encoding: "utf8", env: { ...process.env, GOWORK: "off" }, timeout: 120000,
 });
 writeFileSync(join(work, "test.log"), (result.stdout ?? "") + (result.stderr ?? ""));

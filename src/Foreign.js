@@ -10,6 +10,18 @@ export function unsafeReadNumber(value) {
   return value;
 }
 
+export function unsafeReadString(value) {
+  return value;
+}
+
+export function unsafeReadBoolean(value) {
+  return value;
+}
+
+export function unsafeReadArray(value) {
+  return value;
+}
+
 export function isNull(value) {
   return value === null;
 }

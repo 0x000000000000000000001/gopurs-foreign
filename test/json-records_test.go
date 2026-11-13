@@ -2,6 +2,7 @@ package Foreign
 
 import (
 	"encoding/json"
+	"math"
 	"os"
 	"reflect"
 	"strconv"
@@ -9,6 +10,78 @@ import (
 
 	rt "gopurs/output/gopurs_runtime"
 )
+
+func TestNativeForeignReaders(t *testing.T) {
+	type text string
+	type flag bool
+	for _, value := range []any{"hello", text("hello")} {
+		if TagOf(rt.Any(value)).StrVal() != "String" || UnsafeReadString(value) != "hello" {
+			t.Fatalf("string reader: %T", value)
+		}
+	}
+	for _, value := range []any{true, flag(true)} {
+		if TagOf(rt.Any(value)).StrVal() != "Boolean" || !UnsafeReadBoolean(value) {
+			t.Fatalf("boolean reader: %T", value)
+		}
+	}
+	if UnsafeReadString("") != "" || UnsafeReadBoolean(false) {
+		t.Fatal("empty/false primitive changed")
+	}
+	type number float64
+	type integer int64
+	for _, value := range []any{int(42), int8(42), int16(42), int32(42), int64(42),
+		uint(42), uint8(42), uint16(42), uint32(42), uint64(42),
+		float32(42), float64(42), number(42), integer(42)} {
+		if TagOf(rt.Any(value)).StrVal() != "Number" || UnsafeReadNumber(value) != 42 {
+			t.Fatalf("number reader: %T", value)
+		}
+	}
+	if !math.IsNaN(UnsafeReadNumber(number(math.NaN()))) ||
+		!math.IsInf(UnsafeReadNumber(number(math.Inf(1))), 1) ||
+		!math.IsInf(UnsafeReadNumber(float32(math.Inf(-1))), -1) {
+		t.Fatal("non-finite Number changed")
+	}
+}
+
+func TestReadArrayPreservesElementRepresentations(t *testing.T) {
+	type strings []string
+	for _, value := range []any{[]any{int64(1), "a", true}, []string{"a", "b"}, strings{"a", "b"}, []any{}, []any(nil)} {
+		input := rt.Any(value)
+		if !IsArray(input).BoolVal() {
+			t.Fatalf("array guard: %T", value)
+		}
+		got := UnsafeReadArray(input)
+		source := reflect.ValueOf(value)
+		if len(got) != source.Len() {
+			t.Fatalf("array length: %T", value)
+		}
+		for i := range got {
+			if !reflect.DeepEqual(rt.ForeignValue(got[i]), source.Index(i).Interface()) {
+				t.Fatalf("array element %d", i)
+			}
+		}
+	}
+	function := rt.Func(func(value rt.Value) rt.Value { return value })
+	boxed := []rt.Value{{}, function, {Type: rt.TypeConstructor, IntVal: 123}}
+	borrowed := UnsafeReadArray(rt.Array(boxed))
+	if &borrowed[0] != &boxed[0] || borrowed[0].Type != 0 || borrowed[2] != boxed[2] ||
+		rt.Apply(borrowed[1], rt.Int(42)).IntVal != 42 {
+		t.Fatal("legacy array contents or borrowing changed")
+	}
+	child := map[string]any{"value": true}
+	cycle := make([]any, 1)
+	cycle[0] = cycle
+	items := UnsafeReadArray(rt.Any([]any{child, child, cycle, function, rt.Value{}}))
+	for _, index := range []int{0, 1} {
+		if reflect.ValueOf(items[index].PtrVal()).Pointer() != reflect.ValueOf(child).Pointer() {
+			t.Fatal("shared child changed")
+		}
+	}
+	if reflect.ValueOf(items[2].PtrVal()).Pointer() != reflect.ValueOf(cycle).Pointer() ||
+		rt.Apply(items[3], rt.Int(42)).IntVal != 42 || items[4].Type != 0 {
+		t.Fatal("native array children were recursively converted")
+	}
+}
 
 func TestJSONRecordRepresentations(t *testing.T) {
 	values := []rt.Value{rt.Any(nil), rt.Str(""), rt.Bool(false), rt.Int(0), rt.Str("Ω"), rt.Array([]rt.Value{rt.Any(nil), rt.Bool(true)})}
